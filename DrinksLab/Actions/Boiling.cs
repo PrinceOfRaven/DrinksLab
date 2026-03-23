@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DrinksLab.Actions
+namespace DrinksLab
 {
-    internal class Boiling
+    internal class Boiling : Action
     {
+
     }
 }

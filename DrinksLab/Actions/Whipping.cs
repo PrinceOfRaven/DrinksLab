@@ -4,8 +4,7 @@ using System.Text;
 
 namespace DrinksLab
 {
-    internal interface Element
+    internal class Whipping : Action
     {
-        void PrintElement();
-    }  
+    }
 }

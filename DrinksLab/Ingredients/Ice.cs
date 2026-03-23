@@ -4,12 +4,11 @@ using System.Text;
 
 namespace DrinksLab
 {
-    internal class Milk : Ingredient
+    internal class Ice : Ingredient
     {
-        internal override Milk Clone()
+        internal override Ice Clone()
         {
-            return new Milk { Mass = this.Mass };
+            return new Ice { Mass = this.Mass };
         }
-
     }
 }
