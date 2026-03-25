@@ -101,7 +101,7 @@ public class Drink
         Element? selected = SelectElement("Выберите тип добавляемого элемента:");
         if (selected != null)
         {
-            //_currentAction.AddElement(selected);
+            _currentAction.AddElement(selected);
             Console.WriteLine($"Добавлено: {selected.GetType().Name}");
         }
         WaitForInput();
@@ -112,7 +112,7 @@ public class Drink
     {
         if (_currentElement == null || _currentElement == _root)
         {
-            Console.WriteLine("Нельзя заменить корневой элемент!");
+            Console.WriteLine("Нельзя заменить корневой элемент");
             WaitForInput();
             return;
         }
@@ -124,21 +124,20 @@ public class Drink
             {
                 foreach (var child in oldAction.Elements)
                 {
-                    newAction.AddChild(child);
+                    newAction.AddElement(child);
                 }
             }
 
             if (_currentElement.Parent is DrinksLab.Action parent)
             {
-                var children = parent.Elements;
-                int index = 0;//children.IndexOf(_currentElement);
+                int index = parent.IndexOf(_currentElement);
                 if (index >= 0)
                 {
                     parent.RemoveChildAt(index);
                     parent.AddChildAt(index, selected);
                     _currentElement = selected;
-                    //_currentAction = selected as Action;
-                    //Console.WriteLine($"✓ Заменено на: {selected.Name}");
+                    _currentAction = selected as DrinksLab.Action;
+                    Console.WriteLine($"Заменено на: {selected.GetType().Name}");
                 }
             }
         }
@@ -149,7 +148,7 @@ public class Drink
     {
         if (_currentElement == null || _currentElement == _root)
         {
-            Console.WriteLine("Нельзя удалить корневой элемент!");
+            Console.WriteLine("Нельзя удалить корневой элемент");
             WaitForInput();
             return;
         }
@@ -214,7 +213,7 @@ public class Drink
                         }
                         else
                         {
-                            Console.WriteLine("Нет дочерних элементов!");
+                            Console.WriteLine("Нет дочерних элементов");
                         }
                     }
                     else
@@ -250,18 +249,18 @@ public class Drink
 
     private void PrintCurrentChildren()
     {
-        Console.WriteLine("\nДочерние элементы:");
+        Console.Write("\nДочерние элементы:");
         if (_currentAction != null)
         {
             var children = _currentAction.Elements;
             if (children.Count == 0)
             {
-                Console.WriteLine("  (нет)");
+                Console.Write("  (нет)\n");
                 return;
             }
             for (int i = 0; i < children.Count; i++)
             {
-                Console.WriteLine($"  {i + 1}. {children[i].GetType().Name}");
+                Console.WriteLine($"\n  {i + 1}. {children[i].GetType().Name}");
             }
         }
     }

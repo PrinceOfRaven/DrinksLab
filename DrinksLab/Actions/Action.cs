@@ -8,28 +8,32 @@ namespace DrinksLab
     {
         private readonly List<Element> _children = new();
         public Element? Parent { get; set; }
+        internal IReadOnlyList<Element> Elements => _children;
 
-        public IReadOnlyList<Element> Elements => _children;
+        internal int IndexOf(Element element) 
+        {
+            return _children.IndexOf(element);
+        }
 
-        public void AddChild(Element child)
+        internal void AddElement(Element child)
         {
             child.Parent = this;
             _children.Add(child);
         }
 
-        public void AddChildAt(int index, Element child)
+        internal void AddChildAt(int index, Element child)
         {
             child.Parent = this;
             _children.Insert(index, child);
         }
 
-        public void RemoveChild(Element child)
+        internal void RemoveChild(Element child)
         {
             _children.Remove(child);
             child.Parent = null;
         }
 
-        public void RemoveChildAt(int index)
+        internal void RemoveChildAt(int index)
         {
             if (index >= 0 && index < _children.Count)
             {
