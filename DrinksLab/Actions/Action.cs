@@ -6,41 +6,47 @@ namespace DrinksLab
 {
     internal abstract class Action : Element
     {
-        protected readonly List<Element> _elements = new();
+        private readonly List<Element> _children = new();
+        public Element? Parent { get; set; }
 
-        protected bool HasIngredients
+        public IReadOnlyList<Element> Elements => _children;
+
+        public void AddChild(Element child)
         {
-            get
-            {
-                foreach (var e in _elements)
-                {
-                    if (e is Ingredient) return true;
+            child.Parent = this;
+            _children.Add(child);
+        }
 
-                    if (e is Action subAction && subAction.HasIngredients) return true;
-                }
-                return false;
+        public void AddChildAt(int index, Element child)
+        {
+            child.Parent = this;
+            _children.Insert(index, child);
+        }
+
+        public void RemoveChild(Element child)
+        {
+            _children.Remove(child);
+            child.Parent = null;
+        }
+
+        public void RemoveChildAt(int index)
+        {
+            if (index >= 0 && index < _children.Count)
+            {
+                _children[index].Parent = null;
+                _children.RemoveAt(index);
             }
         }
 
-        internal virtual void Execute(Element element)
-        {
-            if (element != null)
-            {
-                if ((element is Action action && action.HasIngredients) || element is Ingredient)
-                {
-                    _elements.Add(element);
-                }
-            }
-        }
+        public void Execute(Element? element) { }
 
-        public void PrintElement() 
+        public void PrintElement()
         {
-            Console.Write($"{this.GetType().Name}: ");
+            Console.WriteLine(this.GetType().Name);
 
-            foreach (var element in _elements) 
+            foreach (var child in _children)
             {
-                Console.Write(" ");
-                element.PrintElement();
+                child.PrintElement();
             }
         }
     }

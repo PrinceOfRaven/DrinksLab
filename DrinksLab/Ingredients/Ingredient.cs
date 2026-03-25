@@ -8,6 +8,7 @@ namespace DrinksLab
     internal abstract class Ingredient : Element
     {
         private double _mass;
+        public Element? Parent { get; set; }
 
         internal double Mass
         {

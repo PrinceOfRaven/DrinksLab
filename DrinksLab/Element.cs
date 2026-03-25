@@ -6,6 +6,7 @@ namespace DrinksLab
 {
     internal interface Element
     {
+        Element? Parent { get; set; }
         void PrintElement();
     }  
 }

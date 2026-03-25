@@ -1,123 +1,274 @@
 ﻿using DrinksLab;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-
-
-
 public class Drink
 {
-    private readonly List<Element> _drinkElements = new();
-    private Element _currentElement = null;
+    private readonly Adding _root;
+    private Element? _currentElement;
+    private DrinksLab.Action? _currentAction;  
 
-    private void Print()
+    public Drink()
     {
-        Console.WriteLine("=== НАПИТОК ===");
-        if (_drinkElements.Count == 0)
-        {
-            Console.WriteLine("Состав: Ничего не добавлено");
-        }
-        else
-        {
-            Console.WriteLine("Текущий состав:");
-            for (int i = 0; i < _drinkElements.Count; i++)
-            {
-                Console.Write($"{i+1}. ");
-                _drinkElements[i].PrintElement();
-            }
-        }
-
-        if (_currentElement != null) 
-        {
-            Console.WriteLine("\nТекущий настраиваемый элемент:");
-            _currentElement.PrintElement();
-        }
-
-        
-    }
-
-    private void ApplyAction(string choice)
-    {
-        DrinksLab.Action action = null;
-
-        switch (choice)
-        {
-            case "1":
-                Storage.PrintIngredients();
-                Console.Write("Выберите ингредиент: ");
-                int idx = int.Parse(Console.ReadLine());
-
-                Element selected = Storage.GetIngredient(idx - 1);
-                action = new Adding();
-                action.Execute(selected);
-                _currentElement = action;
-                return;
-            case "2": action = new Boiling(); break;
-            case "3": action = new Grinding(); break;
-            case "4": action = new Mixing(); break;
-            case "5": action = new Pouring(); break;
-            case "6": action = new Whipping(); break;
-        }
-
-        if (action != null)
-        {
-            action.Execute(_currentElement);
-            _currentElement = action;
-        }
-    }
-
-    private void CommitToDrink()
-    {
-        if (_currentElement != null)
-        {
-            _drinkElements.Add(_currentElement);
-            _currentElement = null; 
-            Console.WriteLine("состав напитка обновлён");
-        }
+        _root = new Adding();
+        _currentElement = _root;
+        _currentAction = _root;
     }
 
     public void DrinkManager()
     {
-        bool editing = true;
-        while (editing)
+        bool worked = true;
+        while (worked)
         {
             Console.Clear();
-            Print();
+            PrintCurrentPath();
+            PrintCurrentChildren();
 
-            Console.WriteLine("\nВозможные действия:");
-            if (_currentElement == null)Console.WriteLine("1. Выбрать новый ингредиент");
-            else 
-            {
-                Console.WriteLine("2. Вскипятить ингрдеиент");
-                Console.WriteLine("3. Перемолоть ингредиент");
-                Console.WriteLine("4. Перемешать ингредиент");
-                Console.WriteLine("5. Пролить ингредиент");
-                Console.WriteLine("6. Взбить ингрдеиент");
-                Console.WriteLine("7. Завершить настройку ингредиента");
-            }
-            
-            Console.WriteLine("0. Закончить и выйти");
+            Console.WriteLine("1. Навигация по дереву");
+            Console.WriteLine("2. Добавить узел");
+            Console.WriteLine("3. Заменить текущий узел");
+            Console.WriteLine("4. Удалить текущий узел");
+            Console.WriteLine("5. Показать всё дерево");
+            Console.WriteLine("6. Завершить");
             Console.Write("Выберите действие: ");
 
-            string choice = Console.ReadLine()?.Trim() ?? "";
+            switch (Console.ReadLine())
+            {
+                case "1": WalkOnRecipe(); break;
+                case "2": AddNode(); break;
+                case "3": ReplaceNode(); break;
+                case "4": DeleteNode(); break;
+                case "5": _root.PrintElement(); WaitForInput(); break;
+                case "6": worked = false; break;
+            }
+        }
+    }
 
-            switch (choice)
+    private Element? SelectElement(string title)
+    {
+        Console.WriteLine($"\n{title}");
+        Console.WriteLine("1. Ингредиент");
+        Console.WriteLine("2. Действие");
+        Console.Write("> ");
+
+        return Console.ReadLine() switch
+        {
+            "1" => SelectIngredient(),
+            "2" => SelectAction(),
+            _ => null
+        };
+    }
+
+    private Element? SelectIngredient()
+    {
+        Storage.PrintIngredients();
+        Console.Write("Выберите ингредиент: ");
+        if (int.TryParse(Console.ReadLine(), out int idx) && idx > 0)
+        {
+            return Storage.GetIngredient(idx - 1);
+        }
+        return null;
+    }
+
+    private Element? SelectAction()
+    {
+        Console.WriteLine("1. Вскипятить");
+        Console.WriteLine("2. Перемолоть");
+        Console.WriteLine("3. Перемешать");
+        Console.WriteLine("4. Пролить");
+        Console.WriteLine("5. Взбить");
+        Console.Write("> ");
+
+        return Console.ReadLine() switch
+        {
+            "1" => new Boiling(),
+            "2" => new Grinding(),
+            "3" => new Mixing(),
+            "4" => new Pouring(),
+            "5" => new Whipping(),
+            _ => null
+        };
+    }
+
+    private void AddNode()
+    {
+        if (_currentAction == null)
+        {
+            Console.WriteLine("Нельзя добавить новый элемент к этому элементу");
+            WaitForInput();
+            return;
+        }
+
+        Element? selected = SelectElement("Выберите тип добавляемого элемента:");
+        if (selected != null)
+        {
+            //_currentAction.AddElement(selected);
+            Console.WriteLine($"Добавлено: {selected.GetType().Name}");
+        }
+        WaitForInput();
+    }
+
+
+    private void ReplaceNode()
+    {
+        if (_currentElement == null || _currentElement == _root)
+        {
+            Console.WriteLine("Нельзя заменить корневой элемент!");
+            WaitForInput();
+            return;
+        }
+
+        Element? selected = SelectElement("Выберите элемент для замены:");
+        if (selected != null)
+        {
+            if (_currentElement is DrinksLab.Action oldAction && selected is DrinksLab.Action newAction)
+            {
+                foreach (var child in oldAction.Elements)
+                {
+                    newAction.AddChild(child);
+                }
+            }
+
+            if (_currentElement.Parent is DrinksLab.Action parent)
+            {
+                var children = parent.Elements;
+                int index = 0;//children.IndexOf(_currentElement);
+                if (index >= 0)
+                {
+                    parent.RemoveChildAt(index);
+                    parent.AddChildAt(index, selected);
+                    _currentElement = selected;
+                    //_currentAction = selected as Action;
+                    //Console.WriteLine($"✓ Заменено на: {selected.Name}");
+                }
+            }
+        }
+        WaitForInput();
+    }
+
+    private void DeleteNode()
+    {
+        if (_currentElement == null || _currentElement == _root)
+        {
+            Console.WriteLine("Нельзя удалить корневой элемент!");
+            WaitForInput();
+            return;
+        }
+
+        Console.Write($"Удалить {_currentElement.GetType().Name}? (y/n): ");
+        if (Console.ReadLine()?.ToLower() == "y")
+        {
+            if (_currentElement.Parent is DrinksLab.Action parent)
+            {
+                parent.RemoveChild(_currentElement);
+                _currentElement = parent;  
+                _currentAction = parent;
+                Console.WriteLine("Удалено");
+            }
+        }
+        WaitForInput();
+    }
+
+    private void WalkOnRecipe()
+    {
+        bool walked = true;
+        while (walked)
+        {
+            Console.Clear();
+            PrintCurrentPath();
+            PrintCurrentChildren();
+
+            Console.WriteLine("\n1. Вверх");
+            Console.WriteLine("2. Вниз");
+            Console.WriteLine("3. Завершить навигацию");
+            Console.Write("> ");
+
+            switch (Console.ReadLine())
             {
                 case "1":
+                    if (_currentElement?.Parent != null)
+                    {
+                        UpdateCurrent(_currentElement.Parent);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Вы уже на верхнем уровне");
+                    }
+                    break;
+
                 case "2":
+                    if (_currentAction != null)
+                    {
+                        var children = _currentAction.Elements;
+                        if (children.Count > 0)
+                        {
+                            for (int i = 0; i < children.Count; i++)
+                            {
+                                Console.WriteLine($"  {i + 1}. {children[i].GetType().Name}");
+                            }
+                            Console.Write("Выберите номер: ");
+                            if (int.TryParse(Console.ReadLine(), out int idx) &&
+                                idx > 0 && idx <= children.Count)
+                            {
+                                UpdateCurrent(children[idx - 1]);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Нет дочерних элементов!");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Текущий элемент не может иметь детей");
+                    }
+                    break;
+
                 case "3":
-                case "4":
-                case "5":
-                case "6":
-                    ApplyAction(choice);
-                    break;
-                case "7":
-                    CommitToDrink();
-                    break;
-                case "0":
-                    editing = false;
+                    walked = false;
                     break;
             }
         }
+    }
+
+    private void UpdateCurrent(Element element)
+    {
+        _currentElement = element;
+        _currentAction = element as DrinksLab.Action;
+    }
+
+    private void PrintCurrentPath()
+    {
+        var path = new List<string>();
+        var el = _currentElement;
+        while (el != null)
+        {
+            path.Insert(0, el.GetType().Name);
+            el = el.Parent;
+        }
+        Console.WriteLine("Путь: " + string.Join(" → ", path));
+    }
+
+    private void PrintCurrentChildren()
+    {
+        Console.WriteLine("\nДочерние элементы:");
+        if (_currentAction != null)
+        {
+            var children = _currentAction.Elements;
+            if (children.Count == 0)
+            {
+                Console.WriteLine("  (нет)");
+                return;
+            }
+            for (int i = 0; i < children.Count; i++)
+            {
+                Console.WriteLine($"  {i + 1}. {children[i].GetType().Name}");
+            }
+        }
+    }
+
+    private void WaitForInput()
+    {
+        Console.WriteLine("\nНажмите Enter для продолжения...");
+        Console.ReadLine();
     }
 }
