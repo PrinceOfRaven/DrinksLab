@@ -18,9 +18,16 @@ namespace DrinksLab
 
         internal abstract Ingredient Clone();
 
-        public void PrintElement() 
+        public void PrintElement(int indent) 
         {
-            Console.Write($"{this.GetType().Name}\n");
+            string output = "";
+            for (int i = 0; i < indent; i++) 
+            {
+                output += " ";
+            }
+
+            output += $"{this.GetType().Name}";
+            Console.WriteLine(output);
         }
     }
 }

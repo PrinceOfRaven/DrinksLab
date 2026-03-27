@@ -6,51 +6,55 @@ namespace DrinksLab
 {
     internal abstract class Action : Element
     {
-        private readonly List<Element> _children = new();
+        private readonly List<Element> _elements = new();
         public Element? Parent { get; set; }
-        internal IReadOnlyList<Element> Elements => _children;
+        internal IReadOnlyList<Element> Elements => _elements;
 
         internal int IndexOf(Element element) 
         {
-            return _children.IndexOf(element);
+            return _elements.IndexOf(element);
         }
 
         internal void AddElement(Element child)
         {
             child.Parent = this;
-            _children.Add(child);
+            _elements.Add(child);
         }
 
         internal void AddChildAt(int index, Element child)
         {
             child.Parent = this;
-            _children.Insert(index, child);
-        }
-
-        internal void RemoveChild(Element child)
-        {
-            _children.Remove(child);
-            child.Parent = null;
+            _elements.Insert(index, child);
         }
 
         internal void RemoveChildAt(int index)
         {
-            if (index >= 0 && index < _children.Count)
+            if (index >= 0 && index < _elements.Count)
             {
-                _children[index].Parent = null;
-                _children.RemoveAt(index);
+                _elements[index].Parent = null;
+                _elements.RemoveAt(index);
             }
         }
 
-        public void Execute(Element? element) { }
-
-        public void PrintElement()
+        internal void Execute(Element element)
         {
-            Console.WriteLine(this.GetType().Name);
+            element.Parent = this;
+            _elements.Add(element);
+        }
 
-            foreach (var child in _children)
+        public void PrintElement(int indent)
+        {
+            string output = "";
+            for (int i = 0; i < indent; i++)
             {
-                child.PrintElement();
+                output += " ";
+            }
+            output += $"{this.GetType().Name}";
+            Console.WriteLine(output);
+
+            for (int i = 0; i < _elements.Count; i++)
+            {
+                _elements[i].PrintElement(indent + 3);
             }
         }
     }

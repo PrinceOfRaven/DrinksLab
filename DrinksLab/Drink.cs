@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 public class Drink
 {
-    private readonly Adding _root;
+    private readonly Element _root;
     private Element? _currentElement;
     private DrinksLab.Action? _currentAction;  
 
@@ -11,7 +11,7 @@ public class Drink
     {
         _root = new Adding();
         _currentElement = _root;
-        _currentAction = _root;
+        _currentAction = _root as DrinksLab.Action;
     }
 
     public void DrinkManager()
@@ -26,9 +26,8 @@ public class Drink
             Console.WriteLine("1. Навигация по дереву");
             Console.WriteLine("2. Добавить узел");
             Console.WriteLine("3. Заменить текущий узел");
-            Console.WriteLine("4. Удалить текущий узел");
-            Console.WriteLine("5. Показать всё дерево");
-            Console.WriteLine("6. Завершить");
+            Console.WriteLine("4. Показать всё дерево");
+            Console.WriteLine("5. Завершить");
             Console.Write("Выберите действие: ");
 
             switch (Console.ReadLine())
@@ -36,9 +35,8 @@ public class Drink
                 case "1": WalkOnRecipe(); break;
                 case "2": AddNode(); break;
                 case "3": ReplaceNode(); break;
-                case "4": DeleteNode(); break;
-                case "5": _root.PrintElement(); WaitForInput(); break;
-                case "6": worked = false; break;
+                case "4": _root.PrintElement(0); WaitForInput(); break;
+                case "5": worked = false; break;
             }
         }
     }
@@ -48,7 +46,7 @@ public class Drink
         Console.WriteLine($"\n{title}");
         Console.WriteLine("1. Ингредиент");
         Console.WriteLine("2. Действие");
-        Console.Write("> ");
+        Console.Write("Выберите действие: ");
 
         return Console.ReadLine() switch
         {
@@ -76,7 +74,7 @@ public class Drink
         Console.WriteLine("3. Перемешать");
         Console.WriteLine("4. Пролить");
         Console.WriteLine("5. Взбить");
-        Console.Write("> ");
+        Console.Write("Выберите дейтсвие: ");
 
         return Console.ReadLine() switch
         {
@@ -101,7 +99,7 @@ public class Drink
         Element? selected = SelectElement("Выберите тип добавляемого элемента:");
         if (selected != null)
         {
-            _currentAction.AddElement(selected);
+            _currentAction.Execute(selected);
             Console.WriteLine($"Добавлено: {selected.GetType().Name}");
         }
         WaitForInput();
@@ -124,7 +122,7 @@ public class Drink
             {
                 foreach (var child in oldAction.Elements)
                 {
-                    newAction.AddElement(child);
+                    newAction.Execute(child);
                 }
             }
 
@@ -144,28 +142,6 @@ public class Drink
         WaitForInput();
     }
 
-    private void DeleteNode()
-    {
-        if (_currentElement == null || _currentElement == _root)
-        {
-            Console.WriteLine("Нельзя удалить корневой элемент");
-            WaitForInput();
-            return;
-        }
-
-        Console.Write($"Удалить {_currentElement.GetType().Name}? (y/n): ");
-        if (Console.ReadLine()?.ToLower() == "y")
-        {
-            if (_currentElement.Parent is DrinksLab.Action parent)
-            {
-                parent.RemoveChild(_currentElement);
-                _currentElement = parent;  
-                _currentAction = parent;
-                Console.WriteLine("Удалено");
-            }
-        }
-        WaitForInput();
-    }
 
     private void WalkOnRecipe()
     {
@@ -244,7 +220,7 @@ public class Drink
             path.Insert(0, el.GetType().Name);
             el = el.Parent;
         }
-        Console.WriteLine("Путь: " + string.Join(" → ", path));
+        Console.WriteLine("Путь: " + string.Join(" -> ", path));
     }
 
     private void PrintCurrentChildren()
@@ -255,13 +231,15 @@ public class Drink
             var children = _currentAction.Elements;
             if (children.Count == 0)
             {
-                Console.Write("  (нет)\n");
+                Console.Write(" (нет)\n");
                 return;
             }
+            Console.WriteLine();
             for (int i = 0; i < children.Count; i++)
             {
-                Console.WriteLine($"\n  {i + 1}. {children[i].GetType().Name}");
+                Console.WriteLine($" {i + 1}. {children[i].GetType().Name}");
             }
+            Console.WriteLine();
         }
     }
 

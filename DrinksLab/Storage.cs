@@ -26,7 +26,7 @@ namespace DrinksLab
             for (int i = 0; i < Store.Count; i++) 
             {
                 Console.Write($"{i + 1}. ");
-                Store[i].PrintElement();
+                Store[i].PrintElement(0);
             }
         }
 
